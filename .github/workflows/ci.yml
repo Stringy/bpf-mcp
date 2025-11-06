@@ -17,43 +17,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        components: rustfmt, clippy
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
       with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-registry-
-
-    - name: Cache cargo index
-      uses: actions/cache@v4
-      with:
-        path: ~/.cargo/git
-        key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-git-
-
-    - name: Cache target directory
-      uses: actions/cache@v4
-      with:
-        path: target
-        key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-target-
+        context: .
+        file: ./Containerfile
+        load: true
+        tags: bpf-mcp:ci
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Check formatting
-      run: cargo fmt --check
+      run: |
+        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          cargo fmt --check
 
     - name: Run clippy
-      run: cargo clippy -- -D warnings
+      run: |
+        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          cargo clippy -- -D warnings
 
     - name: Build
-      run: cargo build --verbose
+      run: |
+        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          cargo build --verbose
 
     - name: Run tests
-      run: cargo test --verbose
+      run: |
+        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          cargo test --verbose
