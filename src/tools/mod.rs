@@ -2,8 +2,7 @@ use rmcp::{
     ErrorData,
     handler::server::{ServerHandler, tool::ToolRouter, wrapper::Parameters},
     model::*,
-    schemars,
-    tool, tool_handler, tool_router,
+    schemars, tool, tool_handler, tool_router,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -144,7 +143,9 @@ impl BpfToolHandler {
         }
     }
 
-    #[tool(description = "List available kernel tracepoints with optional filtering and pagination")]
+    #[tool(
+        description = "List available kernel tracepoints with optional filtering and pagination"
+    )]
     async fn list_tracepoints(
         &self,
         params: Parameters<ListTracepointsParams>,
@@ -187,11 +188,8 @@ impl BpfToolHandler {
         // Apply offset and limit for pagination
         let offset = params.0.offset.unwrap_or(0);
         let limit = limit.unwrap_or(100);
-        let tracepoints: Vec<TracepointInfo> = tracepoints
-            .into_iter()
-            .skip(offset)
-            .take(limit)
-            .collect();
+        let tracepoints: Vec<TracepointInfo> =
+            tracepoints.into_iter().skip(offset).take(limit).collect();
 
         // Serialize to JSON
         serde_json::to_string(&tracepoints)
@@ -205,7 +203,9 @@ impl BpfToolHandler {
             .or_else(Ok)
     }
 
-    #[tool(description = "List kernel functions available for kprobes/kretprobes with optional filtering and pagination")]
+    #[tool(
+        description = "List kernel functions available for kprobes/kretprobes with optional filtering and pagination"
+    )]
     async fn list_kernel_functions(
         &self,
         params: Parameters<ListKernelFunctionsParams>,
@@ -264,11 +264,8 @@ impl BpfToolHandler {
         // Apply offset and limit for pagination
         let offset = params.0.offset.unwrap_or(0);
         let limit = limit.unwrap_or(100);
-        let functions: Vec<KernelFunctionInfo> = functions
-            .into_iter()
-            .skip(offset)
-            .take(limit)
-            .collect();
+        let functions: Vec<KernelFunctionInfo> =
+            functions.into_iter().skip(offset).take(limit).collect();
 
         match serde_json::to_string(&functions) {
             Ok(json_str) => Ok(CallToolResult::success(vec![Content::text(json_str)])),
@@ -279,7 +276,9 @@ impl BpfToolHandler {
         }
     }
 
-    #[tool(description = "Get BTF type information from the kernel with optional filtering and pagination")]
+    #[tool(
+        description = "Get BTF type information from the kernel with optional filtering and pagination"
+    )]
     async fn get_btf_types(
         &self,
         params: Parameters<GetBtfTypesParams>,
@@ -376,9 +375,12 @@ impl BpfToolHandler {
                     let name = btf.resolve_name(func).unwrap_or_default();
                     (name, "Func".to_string(), None, None)
                 }
-                btf_rs::Type::FuncProto(_) => {
-                    ("(funcproto)".to_string(), "FuncProto".to_string(), None, None)
-                }
+                btf_rs::Type::FuncProto(_) => (
+                    "(funcproto)".to_string(),
+                    "FuncProto".to_string(),
+                    None,
+                    None,
+                ),
                 btf_rs::Type::Var(var) => {
                     let name = btf.resolve_name(var).unwrap_or_default();
                     (name, "Var".to_string(), None, None)
@@ -426,11 +428,7 @@ impl BpfToolHandler {
         // Apply offset and limit for pagination
         let offset = offset.unwrap_or(0);
         let limit = limit.unwrap_or(100);
-        let types: Vec<BtfTypeInfo> = types
-            .into_iter()
-            .skip(offset)
-            .take(limit)
-            .collect();
+        let types: Vec<BtfTypeInfo> = types.into_iter().skip(offset).take(limit).collect();
 
         match serde_json::to_string(&types) {
             Ok(json_str) => Ok(CallToolResult::success(vec![Content::text(json_str)])),
@@ -442,9 +440,7 @@ impl BpfToolHandler {
     }
 
     #[tool(description = "List supported BPF program types and their descriptions")]
-    async fn list_bpf_program_types(
-        &self,
-    ) -> Result<CallToolResult, ErrorData> {
+    async fn list_bpf_program_types(&self) -> Result<CallToolResult, ErrorData> {
         let mut program_types = HashMap::new();
 
         program_types.insert(
@@ -533,9 +529,7 @@ impl BpfToolHandler {
     }
 
     #[tool(description = "List supported BPF map types and their descriptions")]
-    async fn list_bpf_map_types(
-        &self,
-    ) -> Result<CallToolResult, ErrorData> {
+    async fn list_bpf_map_types(&self) -> Result<CallToolResult, ErrorData> {
         let mut map_types = HashMap::new();
 
         map_types.insert(
