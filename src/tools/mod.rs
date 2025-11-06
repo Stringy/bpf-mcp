@@ -246,10 +246,8 @@ impl BpfToolHandler {
 
                 if matches!(symbol_type, "t" | "T" | "w" | "W") {
                     // Apply pattern filter
-                    if let Some(ref filter) = pattern {
-                        if !name.contains(filter) {
-                            continue;
-                        }
+                    if let Some(ref filter) = pattern && !name.contains(filter) {
+                        continue;
                     }
 
                     functions.push(KernelFunctionInfo {
@@ -411,10 +409,8 @@ impl BpfToolHandler {
             }
 
             // Apply pattern filter
-            if let Some(ref filter) = pattern {
-                if !type_name.contains(filter) {
-                    continue;
-                }
+            if let Some(ref filter) = pattern && !type_name.contains(filter) {
+                continue;
             }
 
             types.push(BtfTypeInfo {
