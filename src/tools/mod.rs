@@ -143,6 +143,27 @@ impl BpfToolHandler {
         }
     }
 
+    /// Lists all available kernel tracepoints from debugfs.
+    ///
+    /// This tool reads tracepoint information from `/sys/kernel/debug/tracing/events`
+    /// and returns details about each available tracepoint including its name, category,
+    /// and format specification.
+    ///
+    /// # Parameters
+    /// - `category`: Optional filter by category name (substring match)
+    /// - `pattern`: Optional filter by tracepoint name or category (substring match)
+    /// - `limit`: Maximum number of results to return (default: 100)
+    /// - `offset`: Number of results to skip for pagination (default: 0)
+    ///
+    /// # Returns
+    /// JSON array of `TracepointInfo` objects containing:
+    /// - `name`: Full tracepoint name (e.g., "sched:sched_switch")
+    /// - `category`: Tracepoint category (e.g., "sched")
+    /// - `format`: Optional format specification from the tracepoint's format file
+    ///
+    /// # Requirements
+    /// - Debugfs must be mounted at `/sys/kernel/debug`
+    /// - Read access to tracepoint directories
     #[tool(
         description = "List available kernel tracepoints with optional filtering and pagination"
     )]
@@ -203,6 +224,26 @@ impl BpfToolHandler {
             .or_else(Ok)
     }
 
+    /// Lists kernel functions available for attaching kprobes and kretprobes.
+    ///
+    /// This tool reads the kernel symbol table from `/proc/kallsyms` and returns
+    /// information about kernel functions that can be used as attachment points
+    /// for BPF kprobe and kretprobe programs.
+    ///
+    /// # Parameters
+    /// - `pattern`: Optional filter by function name (substring match)
+    /// - `limit`: Maximum number of results to return (default: 100)
+    /// - `offset`: Number of results to skip for pagination (default: 0)
+    ///
+    /// # Returns
+    /// JSON array of `KernelFunctionInfo` objects containing:
+    /// - `name`: Function name (e.g., "do_sys_open")
+    /// - `address`: Kernel address of the function (if available)
+    /// - `module`: Optional module name if the function is from a kernel module
+    ///
+    /// # Requirements
+    /// - Read access to `/proc/kallsyms`
+    /// - Symbol types 't', 'T', 'w', 'W' are included (text/weak symbols)
     #[tool(
         description = "List kernel functions available for kprobes/kretprobes with optional filtering and pagination"
     )]
@@ -246,7 +287,9 @@ impl BpfToolHandler {
 
                 if matches!(symbol_type, "t" | "T" | "w" | "W") {
                     // Apply pattern filter
-                    if let Some(ref filter) = pattern && !name.contains(filter) {
+                    if let Some(ref filter) = pattern
+                        && !name.contains(filter)
+                    {
                         continue;
                     }
 
@@ -274,6 +317,31 @@ impl BpfToolHandler {
         }
     }
 
+    /// Retrieves BTF (BPF Type Format) type information from the kernel.
+    ///
+    /// This tool reads BTF data from `/sys/kernel/btf/vmlinux` and provides
+    /// detailed type information about kernel data structures, making it easier
+    /// to write BPF programs that interact with kernel structures.
+    ///
+    /// # Parameters
+    /// - `pattern`: Optional filter by type name (substring match)
+    /// - `limit`: Maximum number of results to return (default: 100)
+    /// - `offset`: Number of results to skip for pagination (default: 0)
+    ///
+    /// # Returns
+    /// JSON array of `BtfTypeInfo` objects containing:
+    /// - `name`: Type name (e.g., "task_struct", "file")
+    /// - `kind`: Type kind (e.g., "Struct", "Union", "Enum", "Typedef")
+    /// - `size`: Size in bytes (if applicable)
+    /// - `members`: Array of member names for structs/unions (if applicable)
+    ///
+    /// # Requirements
+    /// - Kernel with BTF support (CONFIG_DEBUG_INFO_BTF=y)
+    /// - Access to `/sys/kernel/btf/vmlinux`
+    ///
+    /// # Example
+    /// Querying for "struct file" will return its size (184 bytes) and all member fields
+    /// like f_lock, f_mode, f_op, f_mapping, etc.
     #[tool(
         description = "Get BTF type information from the kernel with optional filtering and pagination"
     )]
@@ -409,7 +477,9 @@ impl BpfToolHandler {
             }
 
             // Apply pattern filter
-            if let Some(ref filter) = pattern && !type_name.contains(filter) {
+            if let Some(ref filter) = pattern
+                && !type_name.contains(filter)
+            {
                 continue;
             }
 
@@ -435,6 +505,23 @@ impl BpfToolHandler {
         }
     }
 
+    /// Lists all supported BPF program types with descriptions.
+    ///
+    /// This tool provides a comprehensive reference of available BPF program types,
+    /// helping developers understand which program type to use for different
+    /// use cases (tracing, networking, security, etc.).
+    ///
+    /// # Returns
+    /// JSON object mapping program type names to their descriptions. Examples include:
+    /// - `kprobe`: Kernel function entry probe
+    /// - `tracepoint`: Kernel tracepoint probe
+    /// - `xdp`: eXpress Data Path network packet processing
+    /// - `cgroup_skb`: Control group socket buffer
+    /// - `perf_event`: Performance monitoring events
+    ///
+    /// # Notes
+    /// This is a static reference list and does not query the kernel directly.
+    /// Actual kernel support may vary depending on kernel version and configuration.
     #[tool(description = "List supported BPF program types and their descriptions")]
     async fn list_bpf_program_types(&self) -> Result<CallToolResult, ErrorData> {
         let mut program_types = HashMap::new();
@@ -524,6 +611,23 @@ impl BpfToolHandler {
         }
     }
 
+    /// Lists all supported BPF map types with descriptions.
+    ///
+    /// This tool provides a comprehensive reference of available BPF map types,
+    /// which are data structures used by BPF programs to store and share data
+    /// between BPF programs and userspace.
+    ///
+    /// # Returns
+    /// JSON object mapping map type names to their descriptions. Examples include:
+    /// - `hash`: Hash table for key-value storage
+    /// - `array`: Array indexed by integers
+    /// - `ringbuf`: Ring buffer for efficient data transfer
+    /// - `perf_event_array`: Array for perf event communication
+    /// - `lru_hash`: LRU hash table with automatic eviction
+    ///
+    /// # Notes
+    /// This is a static reference list and does not query the kernel directly.
+    /// Actual kernel support may vary depending on kernel version and configuration.
     #[tool(description = "List supported BPF map types and their descriptions")]
     async fn list_bpf_map_types(&self) -> Result<CallToolResult, ErrorData> {
         let mut map_types = HashMap::new();
