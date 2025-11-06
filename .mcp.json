@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "bpf-mcp": {
+      "command": "podman",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--privileged",
+        "-v",
+        "/sys/kernel/debug:/sys/kernel/debug:ro",
+        "bpf-mcp"
+      ]
+    }
+  }
+}
