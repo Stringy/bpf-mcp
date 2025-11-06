@@ -32,20 +32,20 @@ jobs:
 
     - name: Check formatting
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
-          cargo fmt --check
+        docker run --rm --entrypoint bash -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          -c "cargo fmt --check"
 
     - name: Run clippy
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
-          cargo clippy -- -D warnings
+        docker run --rm --entrypoint bash -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          -c "cargo clippy -- -D warnings"
 
     - name: Build
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
-          cargo build --verbose
+        docker run --rm --entrypoint bash -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          -c "cargo build --verbose"
 
     - name: Run tests
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
-          cargo test --verbose
+        docker run --rm --entrypoint bash -v ${{ github.workspace }}:/app -w /app bpf-mcp:ci \
+          -c "cargo test --verbose"
